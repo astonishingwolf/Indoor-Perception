@@ -14,9 +14,9 @@ class Yolov4():
         NMS_THRESHOLD = 0.4
         COLORS = [(0, 255, 255), (255, 255, 0), (0, 255, 0), (255, 0, 0)]
         class_names = []
-        with open("yolov3.txt", "r") as f:
+        with open("yolo\\yolov3.txt", "r") as f:
             class_names = [cname.strip() for cname in f.readlines()]
-        net = cv.dnn.readNet("yolov4-obj_final.weights", "yolov4.cfg")
+        net = cv.dnn.readNet("yolo\\yolov4-obj_final.weights", "yolo\\yolov4.cfg")
         # net.setPreferableBackend(cv.dnn.DNN_BACKEND_CUDA)
         # net.setPreferableTarget(cv.dnn.DNN_TARGET_CUDA_FP16)
         model = cv.dnn_DetectionModel(net)
@@ -62,10 +62,10 @@ class Yolo():
         Height = img.shape[0]
         scale = 0.00392
         classes = None
-        with open('yolov3.txt', 'r') as f:
+        with open('yolo\\yolov3.txt', 'r') as f:
             classes = [line.strip() for line in f.readlines()]
         COLORS = np.random.uniform(0, 255, size=(len(classes), 3))
-        net = cv.dnn.readNetFromDarknet('yolov4-obj.cfg', 'yolov4-obj_final.weights')
+        net = cv.dnn.readNetFromDarknet('yolo\\yolov4-obj.cfg', 'yolo\\yolov4-obj_final.weights')
         # net = cv.dnn.readNetFromDarknet('yolov4.cfg', 'yolov4-obj_final.weights')
         blob = cv.dnn.blobFromImage(img, scale, (416,416), (0,0,0), True, crop=False)
         net.setInput(blob)
@@ -163,9 +163,9 @@ class imagepred():
         self.trackimage = TrackImage()
         
     def show(self,img):
-        cv.imshow("object detection", img)
+        cv.imshow("ref\\object detection", img)
         cv.waitKey()  
-        cv.imwrite("object-detection.jpg", img)
+        cv.imwrite("ref\\object-detection.jpg", img)
         cv.destroyAllWindows()
     
     def single(self,image):
@@ -177,7 +177,7 @@ class imagepred():
         for i in range(str,end):
             pos = []
             if i % time == 0:
-                img1,box,classes = self.yolo(img[i])
+                img1,box = self.yolo(img[i])
                 boxes.append(box)
                 print(box)
                 # print(img1)
