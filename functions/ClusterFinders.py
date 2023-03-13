@@ -1,6 +1,10 @@
 from functions.pc_matching import PCMatch
 from functions.tracking import Track
 from functions.pc_registration import PointReg
+import functions.pc_registration
+import importlib
+importlib.reload(functions.pc_registration)
+from functions.pc_registration import PointReg
 class ClusterFinder():
 
     def __init__(self):
@@ -8,13 +12,20 @@ class ClusterFinder():
         self.match_points = PCMatch()
         self.tracking = Track()
         self.register = PointReg()
-    
+
     def registration(self,datalists,object):
+        
         reg_pts = datalists[object][0]
+        self.register.reset_trans(datalists[object][1],reg_pts)
         print('Initial number of points in cluster: ',reg_pts.shape[0])
-        fr_list = datalists[object][1:]
-        for i in datalists[object]:                   
-            reg_pts = self.register(i,reg_pts)
+        datalists[object] = datalists[object][1:]
+        for count,i in enumerate(datalists[object]): 
+            # transform = centers[object][count] - centers[object][count-1]   
+            # in_t = [[1,0,0,transform[0]],[0,1,0,transform[1]],[0,0,1,transform[2]],[0,0,0,1]] 
+            if count > 3:
+                reg_pts = self.register(i,reg_pts,RANSAC=True)    
+            else:
+                reg_pts = self.register(i,reg_pts)
         print('Total points in aggregated point cloud ',reg_pts.shape[0])
         return reg_pts
 

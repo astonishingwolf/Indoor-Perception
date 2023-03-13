@@ -54,25 +54,27 @@ class sensorfusion():
         if (p[0] > bl[0] and p[0] < tr[0] and p[1] > bl[1] and p[1] < tr[1]) :
             return True
         else :
-                return False
+            return False
 
     def matchID(self,cluster,image,step,num):
+        #get all the bounding boxes
         bbox = self.img_pred(image,num,num+1,3)
-        Center = self.CCenter.centroid(cluster[step])
-        cam_lid_trans = np.load('transformation\\CC_proj_L(1).npy')
-        Center = np.append(Center,1)
-        cluster_trans =  np.dot(cam_lid_trans,np.transpose(Center))
-        cluster_trans =  np.transpose(cluster_trans)
-        [x,y,w,h] = bbox
-        i = cluster_trans
-        i[0] = i[0]/i[2]
-        i[1] = i[1]/i[2]
-        i[0] = i[0]/3
-        i[1] = i[1]/3
-        x1 = m.trunc(i[1])
-        y1 = m.trunc(i[0])
-        if self.solve((x,y),(x+w,y+h),(y1,x1)):
-            print('This is our required Cluster with center')
+        for box in bbox:
+            Center = self.CCenter.centroid(cluster[step])
+            cam_lid_trans = np.load('transformation\\CC_proj_L(1).npy')
+            Center = np.append(Center,1)
+            cluster_trans =  np.dot(cam_lid_trans,np.transpose(Center))
+            cluster_trans =  np.transpose(cluster_tans)
+            [x,y,w,h] = box
+            i = cluster_trans
+            i[0] = i[0]/i[2]
+            i[1] = i[1]/i[2]
+            i[0] = i[0]/3
+            i[1] = i[1]/3
+            x1 = m.trunc(i[1])
+            y1 = m.trunc(i[0])
+            if self.solve((x,y),(x+w,y+h),(y1,x1)):
+                print('This is our required Cluster with center')
 
     def clear_cluster(self,cluster,image,step,num):
         img = image[num]

@@ -20,6 +20,10 @@ class PointReg():
         # self.pc_agg = None
         # self.corr_set = None
 
+    def reset_trans(self,s_pc,t_pc):
+        self.T = np.eye(4)
+        self.T[:3,3] = np.mean(t_pc,0)-np.mean(s_pc,0)
+
     def pc_reset(self,s_pc,t_pc):
         self.source = o3d.geometry.PointCloud()
         self.source.points = o3d.utility.Vector3dVector(s_pc)
@@ -27,12 +31,11 @@ class PointReg():
         self.target = o3d.geometry.PointCloud()
         self.target.points = o3d.utility.Vector3dVector(t_pc)
         self.target.estimate_normals()
-        self.T = np.eye(4)
-        # Naren edit
-        # angle = self.init_transform(s_pc,t_pc)
-        # self.T[:3,:3] = np.array([[math.cos(angle),-math.sin(angle),0],[math.sin(angle),math.cos(angle),0],[0,0,1]])
-
-        self.T[:3,3] = np.mean(t_pc,0)-np.mean(s_pc,0)
+        print('saved transformation')
+        # self.T = np.eye(4)
+        # print(self.T)
+        # self.T[:3,3] = np.mean(t_pc,0)-np.mean(s_pc,0)
+        print(self.T)
 
     @staticmethod
     def init_transform(s_pc,t_pc):
@@ -69,6 +72,7 @@ class PointReg():
             3, [o3d.pipelines.registration.CorrespondenceCheckerBasedOnEdgeLength(0.9),
                 o3d.pipelines.registration.CorrespondenceCheckerBasedOnDistance(distance_threshold)],
                 o3d.pipelines.registration.RANSACConvergenceCriteria(10000000, 0.99999))
+        print(result)
         return result
 
     def execute_fast_global_registration(self,source_down, target_down, source_fpfh,
@@ -89,6 +93,7 @@ class PointReg():
         o3d.visualization.draw_geometries([source_temp, self.target])
 
     def pc_reg(self,result):
+        #self.T = trans
         if self.RANSAC == True:
             print('Applying RANSAC based Transformation')
             transform =  result.transformation
@@ -133,8 +138,28 @@ class PointReg():
         s_pc = np.asarray(self.source.points)
         new_points = np.vstack([t_pc,s_pc[false_ind[:,0],:]])
         return new_points
+    
+    def localisation(self,source_pts,target_pts):
+        print('world smalllest violin')
+        self.pc_reset(source_pts,target_pts)
+        print(self.T)
+        # self.T[:3,3] = np.mean(target_pts,0)-np.mean(source_pts,0)
+        source_down,source_fpfh = self.preprocess_point_cloud(source_pts)
+        target_down,target_fpfh = self.preprocess_point_cloud(target_pts)
+        results = self.execute_global_registration(source_down,target_down,source_fpfh,target_fpfh)
+        #results = self.execute_fast_global_registration(source_down,target_down,source_fpfh,target_fpfh)
+        #print(results)
+        corr_set = self.pc_reg(results)
+        pc2add = self.missing_pts(corr_set)
+        print(pc2add.shape[0],' points added')
+        new_pts = self.pc_update(pc2add)
+        
+        return self.T,new_pts
 
-    def __call__(self, source_pts, target_pts):
+    def __call__(self, source_pts, target_pts,RANSAC = False):
+        # print('wow')
+        self.RANSAC = RANSAC
+        print('RANSAC BASED METHOD id :',self.RANSAC)
         self.pc_reset(source_pts,target_pts)
         # self.T[:3,3] = np.mean(target_pts,0)-np.mean(source_pts,0)
         source_down,source_fpfh = self.preprocess_point_cloud(source_pts)
