@@ -25,6 +25,7 @@ class PointReg():
         self.T[:3,3] = np.mean(t_pc,0)-np.mean(s_pc,0)
 
     def pc_reset(self,s_pc,t_pc):
+        print(type(t_pc))
         self.source = o3d.geometry.PointCloud()
         self.source.points = o3d.utility.Vector3dVector(s_pc)
         self.source.estimate_normals()
@@ -83,7 +84,30 @@ class PointReg():
             o3d.pipelines.registration.FastGlobalRegistrationOption(
                 maximum_correspondence_distance=distance_threshold))
         return result
+    
+    @staticmethod
+    def outlier_removal(pts,nb,rad):
+        pcd = o3d.geometry.PointCloud()
+        pcd.points = o3d.utility.Vector3dVector(pts)
+        cl, ind = pcd.remove_radius_outlier(nb_points=nb, radius=rad)
+        out = pcd.select_by_index(ind,invert = True)
+        out = np.asarray(out)
+        print("Radius oulier removal",out.size)
+        pcd = pcd.select_by_index(ind)
+        points = np.asarray(pcd.points)
+        print('type')
+        print(points.shape)
+        return points
 
+    @staticmethod
+    def voxel_down(pts):
+        pcd = o3d.geometry.PointCloud()
+        pcd.points = o3d.utility.Vector3dVector(pts)
+        downpcd = pcd.voxel_down_sample(voxel_size=0.995)
+        points = np.asarray(downpcd.points)
+        print('Working Downsampling')
+        print(points.shape)
+        return points
 
     def draw_registration_result(self):
         source_temp = copy.deepcopy(self.source)
@@ -171,5 +195,7 @@ class PointReg():
         pc2add = self.missing_pts(corr_set)
         print(pc2add.shape[0],' points added')
         new_pts = self.pc_update(pc2add)
-        
+        #print('outlier removal working')
+        #new_pt = self.outlier_removal(new_pts,10,0.05)
+        new_pts = self.voxel_down(new_pts)
         return new_pts

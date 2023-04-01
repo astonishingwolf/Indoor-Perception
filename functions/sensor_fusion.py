@@ -64,7 +64,7 @@ class sensorfusion():
             cam_lid_trans = np.load('transformation\\CC_proj_L(1).npy')
             Center = np.append(Center,1)
             cluster_trans =  np.dot(cam_lid_trans,np.transpose(Center))
-            cluster_trans =  np.transpose(cluster_tans)
+            cluster_trans =  np.transpose(cluster_trans)
             [x,y,w,h] = box
             i = cluster_trans
             i[0] = i[0]/i[2]
