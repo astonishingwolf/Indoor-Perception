@@ -177,7 +177,6 @@ class PointReg():
         pc2add = self.missing_pts(corr_set)
         print(pc2add.shape[0],' points added')
         new_pts = self.pc_update(pc2add)
-        
         return self.T,new_pts
 
     def __call__(self, source_pts, target_pts,RANSAC = False):
@@ -197,5 +196,5 @@ class PointReg():
         new_pts = self.pc_update(pc2add)
         #print('outlier removal working')
         #new_pt = self.outlier_removal(new_pts,10,0.05)
-        new_pts = self.voxel_down(new_pts)
+        #new_pts = self.voxel_down(new_pts)
         return new_pts
